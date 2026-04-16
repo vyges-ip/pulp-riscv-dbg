@@ -14,7 +14,7 @@
     "digital"
   ],
   "created": "2026-04-16T04:22:21Z",
-  "updated": "2026-04-16T04:22:21Z",
+  "updated": "2026-04-16T21:03:47Z",
   "source": {
     "type": "git",
     "url": "https://github.com/pulp-platform/riscv-dbg",
@@ -222,19 +222,46 @@
   },
   "dependencies": [
     {
-      "name": "dm_pkg",
-      "type": "package",
-      "description": "This IP's own debug-module package — hartinfo_t, dmi_req_t, dmi_resp_t, CSR opcodes"
+      "name": "vyges-ip/common_cells",
+      "version": ">=1.0.0",
+      "dependency_info": {
+        "name": "vyges-ip/common_cells",
+        "version": ">=1.0.0",
+        "type": "library"
+      },
+      "source_management": {
+        "source": {
+          "type": "git",
+          "url": "https://github.com/vyges-ip/common_cells",
+          "commit": "main"
+        },
+        "autoFetch": true
+      },
+      "compliance": {
+        "license": "SHL-0.51",
+        "attribution": "PULP utility library. MUST-HAVE: dmi_cdc.sv instantiates cdc_2phase_clearable; dm_csrs.sv instantiates fifo_v3."
+      }
     },
     {
-      "name": "common_cells",
-      "type": "library",
-      "description": "PULP utility cells — sync, deglitch, FIFOs, CDC primitives. Source: pulp-platform/common_cells (NOT yet mirrored to vyges-ip)"
-    },
-    {
-      "name": "tech_cells_generic",
-      "type": "library",
-      "description": "PULP technology-abstract clock gating / scan / latches. Source: pulp-platform/tech_cells_generic (NOT yet mirrored to vyges-ip)"
+      "name": "vyges-ip/tech_cells_generic",
+      "version": ">=1.0.0",
+      "dependency_info": {
+        "name": "vyges-ip/tech_cells_generic",
+        "version": ">=1.0.0",
+        "type": "library"
+      },
+      "source_management": {
+        "source": {
+          "type": "git",
+          "url": "https://github.com/vyges-ip/tech_cells_generic",
+          "commit": "main"
+        },
+        "autoFetch": true
+      },
+      "compliance": {
+        "license": "SHL-0.51",
+        "attribution": "PULP technology-abstract cells. MUST-HAVE: dmi_jtag_tap.sv instantiates tc_clk_inverter and tc_clk_mux2."
+      }
     }
   ],
   "test": {
