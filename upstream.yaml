@@ -1,0 +1,26 @@
+schema_version: "vyges-upstream-v1"
+upstream:
+  type: "repository"
+  source: https://github.com/pulp-platform/riscv-dbg
+  commit: 1cd764a82d7d49c5e8679fbb70b540b2e274bab9
+  extracted_at: "2026-04-16T04:22:21Z"
+import:
+  rtl:
+    - path: "src"
+      map_to: "rtl"
+    - path: "debug_rom"
+      map_to: "rtl/debug_rom"
+  license:
+    - path: "LICENSE"
+    - path: "LICENSE.SiFive"
+  readme:
+    - path: "README.md"
+license:
+  spdx: SHL-0.51
+  notes: |
+    Solderpad Hardware License 0.51 — explicit Apache-2.0 opt-in clause in the
+    license grants Licensees the option to treat Work as Apache 2.0 licensed.
+    Compatible with Vyges Apache-2.0 catalog policy.
+    Debug ROM (debug_rom/*.sv) originates from SiFive under LICENSE.SiFive
+    (BSD-3-Clause-style) — retained per upstream convention.
+  file: LICENSE

@@ -1,0 +1,318 @@
+{
+  "$schema": "https://vyges.com/schema/v1/vyges-metadata.schema.json",
+  "x-version": "1.0.0",
+  "name": "pulp-riscv-dbg",
+  "version": "0.1.0",
+  "description": "PULP-platform RISC-V Debug Module implementing RISC-V Debug Spec 0.13. Lightweight alternative to opentitan-rv-dm — uses plain req/gnt bus (or OBI variant), no OpenTitan lifecycle/alert/RACL/OTP dependencies. ~15 top-level ports; JTAG TAP is a separate module (dmi_jtag.sv) and can be swapped for a Xilinx BSCAN TAP (dmi_bscane_tap.sv) on FPGA.",
+  "license": "SHL-0.51",
+  "maturity": "production",
+  "target": [
+    "asic",
+    "fpga"
+  ],
+  "design_type": [
+    "digital"
+  ],
+  "created": "2026-04-16T04:22:21Z",
+  "updated": "2026-04-16T04:22:21Z",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/pulp-platform/riscv-dbg",
+    "commit": "1cd764a82d7d49c5e8679fbb70b540b2e274bab9",
+    "ip_path": "src",
+    "private": false,
+    "containsEncryptedPayload": false,
+    "indexing": true
+  },
+  "maintainers": [
+    {
+      "name": "Vyges",
+      "email": "team@vyges.com",
+      "url": "https://vyges.com",
+      "github": "vyges"
+    }
+  ],
+  "interfaces": [
+    {
+      "type": "clock",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "clk_i",
+      "width": 1,
+      "description": "System clock"
+    },
+    {
+      "type": "reset",
+      "direction": "input",
+      "protocol": "active-low",
+      "port": "rst_ni",
+      "width": 1,
+      "description": "Async active-low reset — connect power-on reset (NOT system reset)"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "next_dm_addr_i",
+      "width": 32,
+      "description": "Word address of the next debug module in the chain (0x0 = this is the leaf). Per RISC-V Debug Spec, chain-tail modules set nextdm to 0x0."
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "testmode_i",
+      "width": 1,
+      "description": "Test/scan mode indicator"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "standard",
+      "port": "ndmreset_o",
+      "width": 1,
+      "description": "Non-debug module reset request — OR into system reset tree"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "ndmreset_ack_i",
+      "width": 1,
+      "description": "NDM reset acknowledgement pulse from system reset controller"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "standard",
+      "port": "dmactive_o",
+      "width": 1,
+      "description": "Debug module is active"
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "standard",
+      "port": "debug_req_o",
+      "width": "NrHarts",
+      "description": "Async per-hart debug request to CPU"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "standard",
+      "port": "unavailable_i",
+      "width": "NrHarts",
+      "description": "Per-hart availability indicator (1 = hart unavailable, e.g. power down)"
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "dm_hartinfo",
+      "port": "hartinfo_i",
+      "width": "NrHarts",
+      "description": "Per-hart info struct (dm::hartinfo_t) — describes number of scratch CSRs, data registers, etc."
+    },
+    {
+      "type": "bus",
+      "direction": "slave",
+      "protocol": "req-gnt",
+      "port": "slave",
+      "width": "BusWidth",
+      "description": "Memory-mapped slave bus (plain req/gnt/we/addr/be/wdata/rdata). Debugger CSRs + debug ROM + program buffer. Covers 2 × DmBaseAddress size region."
+    },
+    {
+      "type": "bus",
+      "direction": "master",
+      "protocol": "req-gnt",
+      "port": "master",
+      "width": "BusWidth",
+      "description": "Memory-mapped master bus — System Bus Access (SBA) for debugger-initiated R/W. Uses standard req/gnt handshake plus master_r_valid/r_err/r_other_err/r_rdata response channel."
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "dmi_req",
+      "port": "dmi_req",
+      "width": 1,
+      "description": "Debug Module Interface request from DTM (Debug Transport Module, typically JTAG or TL-UL). Handshake: dmi_req_valid_i / dmi_req_ready_o / dmi_req_i (dm::dmi_req_t struct). Compatible with RocketChip Debug Module."
+    },
+    {
+      "type": "custom",
+      "direction": "output",
+      "protocol": "dmi_resp",
+      "port": "dmi_resp",
+      "width": 1,
+      "description": "DMI response to DTM. Handshake: dmi_resp_valid_o / dmi_resp_ready_i / dmi_resp_o (dm::dmi_resp_t struct)."
+    },
+    {
+      "type": "custom",
+      "direction": "input",
+      "protocol": "active-low",
+      "port": "dmi_rst_ni",
+      "width": 1,
+      "description": "Synchronous clear request from DTM to clear the DMI response FIFO"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "NrHarts",
+      "type": "int unsigned",
+      "default": 1,
+      "description": "Number of harts this debug module supports. 1 for single-core integrations."
+    },
+    {
+      "name": "BusWidth",
+      "type": "int unsigned",
+      "default": 32,
+      "description": "Data bus width for slave/master ports. 32 for RV32, 64 for RV64."
+    },
+    {
+      "name": "DmBaseAddress",
+      "type": "int unsigned",
+      "default": "'h1000",
+      "description": "Base address of the debug module slave region. Default non-zero page per RISC-V Debug Spec (first DM at 0x0 is a SPEC requirement for the leaf module)."
+    },
+    {
+      "name": "SelectableHarts",
+      "type": "logic [NrHarts-1:0]",
+      "default": "{NrHarts{1'b1}}",
+      "description": "Bitmask of physically available harts — useful for systems that don't use contiguous hart numbers"
+    },
+    {
+      "name": "ReadByteEnable",
+      "type": "bit",
+      "default": 1,
+      "description": "Drive master_be_o during read transactions (new behavior toggle)"
+    }
+  ],
+  "performance": {},
+  "architecture": {
+    "type": "peripheral",
+    "features": [
+      "RISC-V Debug Spec 0.13 compliant debug module",
+      "JTAG TAP (dmi_jtag.sv + dmi_jtag_tap.sv) or Xilinx BSCAN TAP (dmi_bscane_tap.sv) — swappable at integration time",
+      "Plain req/gnt bus protocol (slave + master) — lightweight, protocol-agnostic",
+      "OBI variant available as alternative top (dm_obi_top.sv)",
+      "Debug Module Interface (DMI) compatible with RocketChip DTM",
+      "Per-hart debug_req/unavailable/hartinfo signalling (NrHarts configurable)",
+      "System Bus Access (SBA) for debugger-initiated memory R/W",
+      "NDM reset request with acknowledgement handshake",
+      "Parameterizable DmBaseAddress for debug-module chaining",
+      "Optional BSCANE TAP for Xilinx FPGA targets"
+    ]
+  },
+  "asic": {
+    "flavor": "digital",
+    "technology": [
+      "sky130A",
+      "gf180mcuD",
+      "ihp-sg13g2"
+    ]
+  },
+  "fpga": {
+    "toolchain": [
+      "Vivado",
+      "Yosys"
+    ],
+    "devices": [
+      "Artix-7",
+      "Ultrascale+"
+    ]
+  },
+  "dependencies": [
+    {
+      "name": "dm_pkg",
+      "type": "package",
+      "description": "This IP's own debug-module package — hartinfo_t, dmi_req_t, dmi_resp_t, CSR opcodes"
+    },
+    {
+      "name": "common_cells",
+      "type": "library",
+      "description": "PULP utility cells — sync, deglitch, FIFOs, CDC primitives. Source: pulp-platform/common_cells (NOT yet mirrored to vyges-ip)"
+    },
+    {
+      "name": "tech_cells_generic",
+      "type": "library",
+      "description": "PULP technology-abstract clock gating / scan / latches. Source: pulp-platform/tech_cells_generic (NOT yet mirrored to vyges-ip)"
+    }
+  ],
+  "test": {
+    "testbenches": [
+      "tb/"
+    ],
+    "status": "upstream_passing",
+    "coverage": "functional"
+  },
+  "documentation": {
+    "upstream": "https://github.com/pulp-platform/riscv-dbg/blob/master/doc",
+    "spec": "https://riscv.org/specifications/debug-specification/"
+  },
+  "artifacts": {
+    "total_rtl_lines": 4500
+  },
+  "categories": [
+    {
+      "main_category": "Processing Cores",
+      "sub_category": "RISC-V"
+    }
+  ],
+  "keywords": [
+    "RISC-V",
+    "Debug Module",
+    "PULP",
+    "JTAG",
+    "DMI",
+    "SBA",
+    "RocketChip",
+    "OBI",
+    "BSCAN"
+  ],
+  "trust": {
+    "verification_level": "silicon_proven",
+    "tapeout_count": 10,
+    "fpga_validated": true,
+    "formal_verified": false,
+    "maintained": true,
+    "last_activity": "2026-04-16T04:22:21Z"
+  },
+  "meta": {
+    "template": {
+      "generator": "vyges-manual",
+      "template_version": "1.0.0",
+      "generated_at": "2026-04-16T04:22:21Z"
+    },
+    "schema": {
+      "version": "1.0.0"
+    }
+  },
+  "rtl_files": [
+    "rtl/dm_pkg.sv",
+    "rtl/dm_csrs.sv",
+    "rtl/dm_mem.sv",
+    "rtl/dm_sba.sv",
+    "rtl/dm_top.sv",
+    "rtl/dm_obi_top.sv",
+    "rtl/dmi_cdc.sv",
+    "rtl/dmi_intf.sv",
+    "rtl/dmi_jtag.sv",
+    "rtl/dmi_jtag_tap.sv",
+    "rtl/dmi_bscane_tap.sv",
+    "rtl/dmi_test.sv",
+    "rtl/debug_rom/debug_rom.sv",
+    "rtl/debug_rom/debug_rom_one_scratch.sv"
+  ],
+  "rtl_quality": {
+    "module_prefixed": false,
+    "defines_prefixed": false,
+    "header_guards": false,
+    "one_module_per_file": true,
+    "self_contained_includes": false,
+    "no_translate_pragmas": true,
+    "lint_clean": false,
+    "no_casex": true,
+    "width_clean": false,
+    "no_sv_keyword_conflicts": true
+  },
+  "defines": []
+}
