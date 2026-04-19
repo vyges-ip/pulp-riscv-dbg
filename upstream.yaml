@@ -24,3 +24,5 @@ license:
     Debug ROM (debug_rom/*.sv) originates from SiFive under LICENSE.SiFive
     (BSD-3-Clause-style) — retained per upstream convention.
   file: LICENSE
+
+metadata_locked: true
