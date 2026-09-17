@@ -1,7 +1,11 @@
 schema_version: "vyges-upstream-v1"
 upstream:
-  type: "repository"
-  source: https://github.com/pulp-platform/riscv-dbg
+  # `repository` was never a valid type; the reusable sync workflow reads
+  # `.upstream.repo // .upstream.source` for every type except monorepo, so this repo has
+  # always BEHAVED as standalone. Naming it so is a no-op for the sync and makes the
+  # manifest validate.
+  type: "standalone"
+  repo: https://github.com/pulp-platform/riscv-dbg
   commit: 1cd764a82d7d49c5e8679fbb70b540b2e274bab9
   extracted_at: "2026-04-16T04:22:21Z"
 import:
