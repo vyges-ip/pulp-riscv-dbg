@@ -6,7 +6,7 @@ upstream:
   # manifest validate.
   type: "standalone"
   repo: https://github.com/pulp-platform/riscv-dbg
-  commit: 1cd764a82d7d49c5e8679fbb70b540b2e274bab9
+  commit: 643607e19df3435cfd77cc56143e2637f5900a6e
   extracted_at: "2026-04-16T04:22:21Z"
 import:
   rtl:
@@ -28,5 +28,4 @@ license:
     Debug ROM (debug_rom/*.sv) originates from SiFive under LICENSE.SiFive
     (BSD-3-Clause-style) — retained per upstream convention.
   file: LICENSE
-
 metadata_locked: true
